@@ -18,10 +18,10 @@ public class BancoDeListas {
 
     public static void main(String[] args) {
         experimentoUno();
-        // experimentoDos();     // <- FASE 2
-        // experimentoTres();    // <- FASE 3
-        // experimentoCuatro(); // <- FASE 4
-        // experimentoCinco();   // <- FASE 5
+        experimentoDos();
+        experimentoTres();
+        experimentoCuatro();
+        experimentoCinco();
     }
 
     // ---------- EXPERIMENTO 1 ----------

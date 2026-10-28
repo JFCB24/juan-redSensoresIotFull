@@ -75,4 +75,52 @@ public class RepositorioEnlazadoTest {
         assertEquals(7, lista.tamano());
         assertEquals(7, lista.contarRecorriendo());
     }
+
+    @Test
+    public void testEliminarEnListaVaciaDevuelveFalse() {
+        RepositorioEnlazado lista = new RepositorioEnlazado();
+        assertFalse(lista.eliminar(0));
+        assertEquals(0, lista.tamano());
+        assertEquals(0, lista.contarRecorriendo());
+    }
+
+    @Test
+    public void testEliminarIndiceInvalidoNoCambiaLaLista() {
+        RepositorioEnlazado lista = new RepositorioEnlazado();
+        for (int i = 0; i < 3; i++) {
+            lista.agregarAlFinal(new LecturaSensor("EST-001", "t"+i, 20+i, 50+i, i));
+        }
+        assertFalse(lista.eliminar(-1));
+        assertFalse(lista.eliminar(3));
+        assertEquals(3, lista.tamano());
+        assertEquals(3, lista.contarRecorriendo());
+    }
+
+    @Test
+    public void testEliminarUnicoNodoDejaListaVacia() {
+        RepositorioEnlazado lista = new RepositorioEnlazado();
+        lista.agregarAlFinal(new LecturaSensor("EST-001", "t0", 20, 50, 0));
+        assertTrue(lista.eliminar(0));
+        assertEquals(0, lista.tamano());
+        assertEquals(0, lista.contarRecorriendo());
+        // tras quedar vacía, agregar al final debe volver a funcionar
+        lista.agregarAlFinal(new LecturaSensor("EST-001", "t1", 21, 51, 1));
+        assertEquals(1, lista.tamano());
+        assertEquals(1, lista.contarRecorriendo());
+        assertEquals(1.0, lista.obtener(0).getPm25());
+    }
+
+    @Test
+    public void testAgregarAlFinalTrasEliminarElUltimoMantieneLaCadena() {
+        RepositorioEnlazado lista = new RepositorioEnlazado();
+        for (int i = 0; i < 3; i++) {
+            lista.agregarAlFinal(new LecturaSensor("EST-001", "t"+i, 20+i, 50+i, i));
+        }
+        assertTrue(lista.eliminar(2));
+        lista.agregarAlFinal(new LecturaSensor("EST-001", "t9", 29, 59, 9));
+        // si 'ultimo' quedó desactualizado, el nuevo nodo no quedaría en la cadena
+        assertEquals(3, lista.tamano());
+        assertEquals(3, lista.contarRecorriendo());
+        assertEquals(9.0, lista.obtener(2).getPm25());
+    }
 }
