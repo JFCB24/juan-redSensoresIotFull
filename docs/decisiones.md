@@ -107,3 +107,52 @@ Conclusión: insertar al inicio es constante en la lista y O(n) en el arreglo. A
 
 - Predominan inserciones al inicio: lista enlazada, porque insertar cuesta O(1).
 - Predominan consultas por posición: arreglo, porque el acceso es directo.
+
+---
+
+# Decisiones de diseño — Semana 6 (pilas, colas y cola de prioridad)
+
+## 14. Pila de acciones (`PilaDeAcciones`)
+
+`desapilar()` y `cima()` devuelven `null` cuando la pila está vacía, en vez de lanzar excepción. El operador puede pulsar Ctrl+Z sin haber hecho nada, y eso no es un error del sistema. El arreglo crece por duplicación, así que `apilar` cuesta O(1) amortizado.
+
+## 15. Cola circular de ingesta (`ColaDeIngesta`)
+
+Las posiciones se reutilizan con aritmética modular (`(indice + 1) % capacidad`). La cola sin reciclar (Exp 2) agota su arreglo aunque el frente haya liberado espacio; la circular no. Las descargas solo ocurren cuando el buffer está realmente lleno, y se cuentan en `descartadas()`.
+
+## 16. Criterio de desempate de las alertas
+
+Orden de atención:
+
+1. **Mayor severidad primero** (`CRITICA` > `ADVERTENCIA` > `INFORMATIVA`).
+2. **Empate en severidad: FIFO**, la que llegó antes se atiende antes.
+
+Alternativas consideradas:
+
+- *Ordenar por zona (hospitalaria > escolar > resto).* Es la alternativa que más se ajusta a la intención del mapa mental, pero el modelo `Alerta` no tiene campo de zona. Agregarlo cambia el contrato de los sensores, así que queda como decisión pendiente.
+- *Ordenar por identificador del sensor.* Es arbitrario: no responde a ninguna necesidad de la plataforma.
+
+Con FIFO, la orden es un **orden total**: no hay dos alertas que empaten, así que el montículo y la lista ordenada producen exactamente la misma secuencia (comprobado en `ColaDeAlertasTest` y en el Exp 4).
+
+Consecuencia para el Exp 5: EST-004 (zona hospitalaria, llegó 3.º) se atiende **segunda** entre las críticas, después de EST-002 (llegó 1.º). No es la primera, como pide la intención del mapa mental.
+
+## 17. Lista ordenada vs. montículo (mediciones propias)
+
+Medido con `BancoDeFlujo`, semilla 42, insertando todas las alertas y luego extrayéndolas todas. Comparaciones entre alertas contadas por cada implementación.
+
+| Alertas | Lista ordenada (comp.) | Tiempo | Montículo (comp.) | Tiempo | Mismo orden |
+|---------|------------------------|--------|-------------------|--------|-------------|
+| 10.000  | 33.295.237             | 83 ms  | 232.299           | 6 ms   | sí          |
+| 50.000  | 835.244.262            | 3.665 ms | 1.394.240       | 21 ms  | sí          |
+| 100.000 | 3.340.553.390          | 20.185 ms | 2.987.868      | 24 ms  | sí          |
+
+Lectura de la tabla: la lista ordenada crece como O(n²) en comparaciones (insertar desplaza en promedio la mitad de los elementos), mientras que el montículo crece como O(n log n). Por eso a 100.000 alertas el montículo usa ~1.100 veces menos comparaciones.
+
+## 18. Cola circular vs. lineal (mediciones propias)
+
+Misma ráfaga de llegadas (bloques de 1.000) en ambas colas, capacidad 1.000:
+
+| Versión | Llegaron | Procesadas | Descartadas |
+|---------|----------|------------|-------------|
+| Lineal sin reciclar (5 rondas) | 5.000   | 1.000   | 4.000 |
+| Circular (200 rondas)          | 200.000 | 200.000 | 0     |
